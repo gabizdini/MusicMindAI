@@ -1,5 +1,29 @@
 import React from 'react';
-import { Cpu, Database, BarChart3, ShieldCheck, Layers, Sparkles } from 'lucide-react';
+import {
+  Cpu, Database, BarChart3, ShieldCheck, Layers, Sparkles,
+  MessageSquareText, ArrowRight
+} from 'lucide-react';
+import { QUESTIONS, QUESTION_FEATURES, FIXED_FEATURES } from '../utils/answers';
+
+const featureLabels: Record<string, string> = {
+  duration_ms: 'Duração',
+  explicit: 'Explícito',
+  danceability: 'Dançabilidade',
+  energy: 'Energia',
+  key: 'Tom',
+  loudness: 'Volume (dB)',
+  mode: 'Modo (Maior/Menor)',
+  speechiness: 'Fala/Vocal',
+  acousticness: 'Acústica',
+  instrumentalness: 'Instrumental',
+  liveness: 'Ao vivo',
+  valence: 'Positividade/Alegria',
+  tempo: 'BPM',
+  time_signature: 'Compasso',
+};
+
+const ALL_FEATURES = Object.keys(featureLabels);
+const derivedFeatures = new Set(Object.values(QUESTION_FEATURES).flat());
 
 export const ModelInfo: React.FC = () => {
   const genres = [
@@ -9,13 +33,6 @@ export const ModelInfo: React.FC = () => {
     { name: 'Música Clássica', icon: '🎻', desc: 'Composições acústicas, alto grau de instrumental e sem vocais.' },
     { name: 'Jazz', icon: '🎷', desc: 'Harmonias sofisticadas, acústica rica e improvisação.' },
     { name: 'Eletrônica', icon: '🎹', desc: 'Sintetizadores, alta energia e batidas eletrônicas pulsantes.' }
-  ];
-
-  const featuresList = [
-    'duration_ms (Duração)', 'explicit (Explícito)', 'danceability (Dançabilidade)',
-    'energy (Energia)', 'key (Tom)', 'loudness (Volume em dB)', 'mode (Modo Maior/Menor)',
-    'speechiness (Fala/Vocal)', 'acousticness (Acústica)', 'instrumentalness (Instrumental)',
-    'liveness (Ao vivo)', 'valence (Positividade/Alegria)', 'tempo (BPM)', 'time_signature (Compasso)'
   ];
 
   return (
@@ -33,6 +50,9 @@ export const ModelInfo: React.FC = () => {
         </div>
         <p className="text-slate-300 text-sm leading-relaxed">
           O <strong className="text-white">MusicMind AI</strong> utiliza um classificador supervisionado baseado em <strong className="text-indigo-400">Random Forest (Floresta Aleatória)</strong>. O modelo foi treinado para analisar padrões complexos entre 14 características acústicas extraídas de faixas musicais e classificá-las em 6 gêneros principais.
+        </p>
+        <p className="text-slate-300 text-sm leading-relaxed mt-3">
+          Para interagir com ele, você não preenche valores técnicos: basta responder <strong className="text-white">5 perguntas simples</strong> sobre a música (mais uma descrição opcional). O sistema traduz essas respostas nos 14 parâmetros numéricos que o modelo entende.
         </p>
       </div>
 
@@ -72,6 +92,51 @@ export const ModelInfo: React.FC = () => {
         </div>
       </div>
 
+      {/* Como as respostas viram features */}
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl">
+        <div className="flex items-center gap-2 mb-4">
+          <MessageSquareText className="w-5 h-5 text-emerald-400" />
+          <h3 className="text-lg font-bold text-white m-0">Como suas respostas viram dados</h3>
+        </div>
+        <p className="text-sm text-slate-300 mb-5">
+          Cada resposta do formulário é convertida automaticamente nos valores numéricos enviados à API:
+        </p>
+
+        <div className="space-y-3">
+          {QUESTIONS.map((question) => (
+            <div
+              key={question.key}
+              className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl"
+            >
+              <div className="sm:w-1/2">
+                <p className="text-sm font-medium text-white m-0">{question.title}</p>
+                <p className="text-[11px] text-slate-400 m-0 mt-0.5">
+                  {question.options.map((o) => o.label).join(' • ')}
+                </p>
+              </div>
+              <div className="flex-1 flex items-center gap-2 flex-wrap">
+                <ArrowRight className="w-4 h-4 text-slate-500 shrink-0" />
+                {QUESTION_FEATURES[question.key].map((feature) => (
+                  <span
+                    key={feature}
+                    className="px-2 py-1 bg-indigo-600/15 border border-indigo-500/30 text-xs font-mono text-indigo-300 rounded-md"
+                  >
+                    {feature}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-xs text-slate-400 mt-4 leading-relaxed">
+          Os outros {FIXED_FEATURES.length} parâmetros ({FIXED_FEATURES.join(', ')}) usam
+          <strong className="text-slate-300"> valores fixos padrão</strong>, já que não há pergunta
+          correspondente no formulário. A descrição escrita é apenas coletada como contexto e não
+          interfere na previsão.
+        </p>
+      </div>
+
       {/* Genres Covered */}
       <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl">
         <div className="flex items-center gap-2 mb-6">
@@ -98,14 +163,40 @@ export const ModelInfo: React.FC = () => {
           <h3 className="text-lg font-bold text-white m-0">As 14 Características de Entrada (Features)</h3>
         </div>
         <p className="text-sm text-slate-300 mb-4">
-          O modelo avalia conjuntamente estes 14 parâmetros numéricos enviados pela API para traçar o perfil sonoro:
+          O modelo avalia conjuntamente estes 14 parâmetros numéricos para traçar o perfil sonoro.
+          As cores indicam de onde cada um vem:
         </p>
+
+        <div className="flex flex-wrap items-center gap-4 mb-4 text-xs">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+            <span className="text-slate-400">Definidas pelas suas respostas ({derivedFeatures.size})</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
+            <span className="text-slate-400">Valores fixos padrão ({FIXED_FEATURES.length})</span>
+          </span>
+        </div>
+
         <div className="flex flex-wrap gap-2">
-          {featuresList.map((feat, idx) => (
-            <span key={idx} className="px-3 py-1.5 bg-slate-950 border border-slate-800 text-xs font-mono text-indigo-300 rounded-lg">
-              {feat}
-            </span>
-          ))}
+          {ALL_FEATURES.map((feat) => {
+            const isDerived = derivedFeatures.has(feat);
+            return (
+              <span
+                key={feat}
+                title={isDerived
+                  ? `Definida pela resposta: ${QUESTIONS.filter((q) => QUESTION_FEATURES[q.key].includes(feat)).map((q) => q.title).join(', ')}`
+                  : 'Valor fixo padrão, sem pergunta correspondente'}
+                className={`px-3 py-1.5 border text-xs font-mono rounded-lg ${
+                  isDerived
+                    ? 'bg-indigo-600/15 border-indigo-500/30 text-indigo-300'
+                    : 'bg-slate-950 border-slate-800 text-slate-400'
+                }`}
+              >
+                {feat} <span className="opacity-60">({featureLabels[feat]})</span>
+              </span>
+            );
+          })}
         </div>
       </div>
     </div>

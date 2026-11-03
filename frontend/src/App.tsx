@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { MusicFeatures, PredictionResponse } from './types/music';
-import { INITIAL_VALUES } from './utils/presets';
+import type { FormAnswers, PredictionResponse } from './types/music';
+import { DEFAULT_ANSWERS, answersToFeatures } from './utils/answers';
 import { checkApiHealth, predictGenre } from './services/api';
 import { Header } from './components/Header';
-import { PresetSelector } from './components/PresetSelector';
 import { MusicForm } from './components/MusicForm';
 import { ResultCard } from './components/ResultCard';
 import { ModelInfo } from './components/ModelInfo';
@@ -11,8 +10,7 @@ import { Sliders, Cpu } from 'lucide-react';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<'predictor' | 'model-info'>('predictor');
-  const [selectedPreset, setSelectedPreset] = useState<string>('pop');
-  const [features, setFeatures] = useState<MusicFeatures>(INITIAL_VALUES);
+  const [answers, setAnswers] = useState<FormAnswers>(DEFAULT_ANSWERS);
   const [loading, setLoading] = useState<boolean>(false);
   const [result, setResult] = useState<PredictionResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +33,7 @@ export function App() {
     setResult(null);
 
     try {
-      const response = await predictGenre(features);
+      const response = await predictGenre(answersToFeatures(answers));
       setResult(response);
     } catch (err: any) {
       setError(err.message || 'Ocorreu um erro desconhecido.');
@@ -79,19 +77,9 @@ export function App() {
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-8">
         {activeTab === 'predictor' ? (
           <>
-            <PresetSelector
-              selectedPreset={selectedPreset}
-              onSelectPreset={(key, presetData) => {
-                setSelectedPreset(key);
-                setFeatures(presetData);
-                setResult(null);
-                setError(null);
-              }}
-            />
-
             <MusicForm
-              features={features}
-              onChange={setFeatures}
+              answers={answers}
+              onChange={setAnswers}
               onSubmit={handleSubmit}
               loading={loading}
             />

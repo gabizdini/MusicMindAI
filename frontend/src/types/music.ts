@@ -15,6 +15,17 @@ export interface MusicFeatures {
   time_signature: number;
 }
 
+export interface FormAnswers {
+  descricao: string;
+  energia: 'baixa' | 'media' | 'alta' | null;
+  dancante: 'pouco' | 'moderadamente' | 'muito' | null;
+  sons: 'acusticos' | 'misturados' | 'eletronicos' | null;
+  voz: 'muita' | 'voz_instrumentos' | 'instrumental' | null;
+  sensacao: 'triste' | 'neutra' | 'alegre' | null;
+}
+
+export type QuestionKey = Exclude<keyof FormAnswers, 'descricao'>;
+
 export interface PredictionResponse {
   genero: string;
   mensagem: string;
