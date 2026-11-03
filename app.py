@@ -79,7 +79,10 @@ def prever_genero():
         for caracteristica in features:
             valor = dados[caracteristica]
 
-            if isinstance(valor, bool) or not isinstance(
+            if isinstance(valor, bool):
+                valor = int(valor)
+
+            if not isinstance(
                 valor, (int, float)
             ):
                 return jsonify({
